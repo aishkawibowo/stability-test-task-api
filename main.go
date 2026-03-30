@@ -9,6 +9,9 @@ import (
 func main() {
 	app := fiber.New()
 
+	app.Get("/", func(c *fiber.Ctx) error {
+    return c.SendString("Task Manager API is running")
+	})
 	app.Get("/tasks", handlers.GetTasks)
 	app.Get("/tasks/:id", handlers.GetTask)
 	app.Post("/tasks", handlers.CreateTask)

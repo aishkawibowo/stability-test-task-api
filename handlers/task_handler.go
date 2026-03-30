@@ -17,29 +17,42 @@ func GetTasks(c *fiber.Ctx) error {
 func GetTask(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	id, _ := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid id",
+	})
+	} 
 
 	task := store.GetTaskByID(id)
 
 	if task == nil {
-		return c.Status(200).JSON(fiber.Map{
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "task not found",
 		})
 	}
 
-	return c.JSON(task)
+	return c.Status(fiber.StatusOK).JSON(task)
 }
 
 func CreateTask(c *fiber.Ctx) error {
 	var task models.Task
 
 	if err := c.BodyParser(&task); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	if task.Title == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "title is required",
+		})
 	}
 
 	store.AddTask(task)
 
-	return c.JSON(task)
+	return c.Status(fiber.StatusCreated).JSON(task)
 }
 
 func DeleteTask(c *fiber.Ctx) error {
@@ -47,7 +60,13 @@ func DeleteTask(c *fiber.Ctx) error {
 
 	id, _ := strconv.Atoi(idParam)
 
-	store.DeleteTask(id)
+	deleted := store.DeleteTask(id)
+
+	if !deleted {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "task not found",
+		})
+	}
 
 	return c.JSON(fiber.Map{
 		"message": "deleted",

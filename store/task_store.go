@@ -12,22 +12,25 @@ func GetAllTasks() []models.Task {
 }
 
 func GetTaskByID(id int) *models.Task {
-	for _, t := range Tasks {
-		if t.ID == id {
-			return &t
+	for i := range Tasks {
+		if Tasks[i].ID == id {
+			return &Tasks[i]
 		}
 	}
 	return nil
 }
 
 func AddTask(task models.Task) {
+	task.ID = Tasks[len(Tasks)-1].ID + 1
 	Tasks = append(Tasks, task)
 }
 
-func DeleteTask(id int) {
+func DeleteTask(id int) bool {
 	for i, t := range Tasks {
 		if t.ID == id {
 			Tasks = append(Tasks[:i], Tasks[i+1:]...)
+			return true
 		}
 	}
+	return false
 }
